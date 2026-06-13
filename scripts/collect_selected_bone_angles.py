@@ -5,8 +5,8 @@ import math
 
 # --- CONFIGURATION ---
 # Define the output directory and filename
-output_dir = r"D:\blender_json_data"
-filename = "mixamo_bone_rotations.json"
+output_dir = r"D:\Projects\Ishaara-Blender-Animation-As-a-Code-AAaC\data"
+filename = "mixamo_bone_rotations.json" # change after saving
 # ---------------------
 
 def get_selected_bone_rotations():

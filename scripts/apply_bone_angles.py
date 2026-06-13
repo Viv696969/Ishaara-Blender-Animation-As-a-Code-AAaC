@@ -4,8 +4,8 @@ import os
 import mathutils
 
 # --- CONFIGURATION ---
-input_dir = r"D:\blender_json_data"
-filename = "some_pose_json.json"
+input_dir = r"D:\Projects\Ishaara-Blender-Animation-As-a-Code-AAaC\data"
+filename = "<put-file-name>.json"
 
 # YOUR FLAG: Set to True to mirror to the opposite side, False to apply normally
 mirroring_on = False 
