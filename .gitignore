@@ -1,0 +1,16 @@
+# Zip files
+*.zip
+
+# Blender
+*.blend1
+*.blend2
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
