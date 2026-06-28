@@ -14,3 +14,15 @@ __pycache__/
 
 # Node
 node_modules/
+
+client-tester/node_modules/
+
+.vscode/
+
+video-scripts/videos/
+video-scripts/.vscode/
+video-scripts/sign-videos/
+video-scripts/merged_video.mp4
+
+final-data/
+staging-data/
