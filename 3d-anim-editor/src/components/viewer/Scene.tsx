@@ -1,7 +1,12 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Grid, Environment, ContactShadows } from "@react-three/drei";
+import {
+  OrbitControls,
+  Grid,
+  Environment,
+  ContactShadows,
+} from "@react-three/drei";
 import { Suspense } from "react";
 import { Model } from "./Model";
 import { useEditorStore } from "@/store/useEditorStore";
@@ -11,53 +16,98 @@ export function Scene() {
   const modelFile = useEditorStore((state) => state.modelFile);
 
   return (
-    <div className="relative w-full h-full bg-[#0B0F14]">
+    <div className="relative w-full h-full bg-[var(--bg-base)]">
       {!modelFile && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
-          <Box className="w-16 h-16 text-white/5 mb-4" strokeWidth={1} />
-          <h2 className="text-xl font-medium text-white/40 mb-2">Workspace Empty</h2>
-          <p className="text-sm text-white/20">Drop a character model in the sidebar to begin</p>
+          <Box
+            className="w-12 h-12 text-[var(--text-secondary)]/20 mb-6"
+            strokeWidth={1}
+          />
+
+          <h2 className="text-3xl font-semibold tracking-tight text-[var(--text-primary)]/70">
+            Workspace Empty
+          </h2>
+
+          <p className="mt-2 text-sm text-[var(--text-secondary)]/40">
+            Drop a character model into the sidebar to begin.
+          </p>
         </div>
       )}
 
-      <Canvas shadows camera={{ position: [0, 1.5, 4], fov: 45 }}>
-        <color attach="background" args={["#0B0F14"]} />
-        <fog attach="fog" args={["#0B0F14", 5, 20]} />
-        
-        <ambientLight intensity={0.5} />
-        <directionalLight 
-          position={[5, 10, 5]} 
-          intensity={1.5} 
-          castShadow 
-          shadow-mapSize={[2048, 2048]} 
+      <Canvas
+        shadows
+        dpr={[1, 2]}
+        camera={{
+          position: [0, 1.5, 4],
+          fov: 40,
+        }}
+      >
+        {/* Background */}
+        <color attach="background" args={["#0B1020"]} />
+        <fog attach="fog" args={["#0B1020", 7, 22]} />
+
+        {/* Ambient */}
+        <ambientLight intensity={0.45} />
+
+        {/* Main Key Light */}
+        <directionalLight
+          position={[6, 10, 6]}
+          intensity={2}
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-bias={-0.0001}
+          color="#F8FAFC"
         />
-        <directionalLight position={[-5, 5, -5]} intensity={0.5} color="#7C3AED" />
+
+        {/* Soft Fill */}
+        <directionalLight
+          position={[-6, 5, -6]}
+          intensity={0.55}
+          color="#A5B4FC"
+        />
+
+        {/* Rim Light */}
+        <directionalLight
+          position={[0, 4, -8]}
+          intensity={0.35}
+          color="#7C3AED"
+        />
 
         <Suspense fallback={null}>
-          <Environment preset="city" />
+          <Environment preset="studio" />
+
           <Model />
-          
-          {/* Premium Grid & Shadows */}
-          <ContactShadows opacity={0.4} scale={10} blur={2} far={4} color="#000000" />
+
+          <ContactShadows
+            position={[0, -0.01, 0]}
+            opacity={0.45}
+            blur={2.5}
+            far={4}
+            scale={12}
+            color="#000000"
+          />
+
           <Grid
-            args={[20, 20]}
+            args={[24, 24]}
             cellSize={0.5}
-            cellThickness={0.5}
-            cellColor="#1f2937"
             sectionSize={2}
-            sectionThickness={1}
-            sectionColor="#374151"
-            fadeDistance={15}
+            fadeDistance={18}
             fadeStrength={1}
+            cellThickness={0.45}
+            sectionThickness={1.1}
+            cellColor="#273449"
+            sectionColor="#394B68"
+            infiniteGrid
           />
         </Suspense>
 
-        <OrbitControls 
-          makeDefault 
-          minDistance={1} 
-          maxDistance={15} 
+        <OrbitControls
+          makeDefault
+          enableDamping
+          dampingFactor={0.08}
+          minDistance={1}
+          maxDistance={15}
           maxPolarAngle={Math.PI / 2 + 0.1}
-          dampingFactor={0.05}
         />
       </Canvas>
     </div>
