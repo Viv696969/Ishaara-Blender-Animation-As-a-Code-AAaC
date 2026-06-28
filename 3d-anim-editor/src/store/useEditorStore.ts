@@ -64,9 +64,9 @@ export const useEditorStore = create<EditorState>((set) => ({
   // --- Initialize Mixer State (This fixes the error!) ---
   playbackState: PlaybackState.IDLE,
   setPlaybackState: (state) => set({ playbackState: state }),
-  speed: 1.0, // Initializes speed so .toFixed(1) works
+  speed: 1.0,
   setSpeed: (speed) => set({ speed }),
-  blendDuration: 0.4,
+  blendDuration: 0.2, // CHANGED from 0.4 for much smoother transitions
   setBlendDuration: (blendDuration) => set({ blendDuration }),
   loopMode: THREE.LoopRepeat,
   setLoopMode: (loopMode) => set({ loopMode }),
