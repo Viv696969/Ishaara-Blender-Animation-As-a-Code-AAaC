@@ -2,7 +2,7 @@
 *.zip
 
 # Blender
-*.blend1
+*.blend
 *.blend2
 
 # macOS

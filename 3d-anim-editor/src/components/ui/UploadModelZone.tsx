@@ -20,40 +20,31 @@ export function UploadModelZone() {
 
   return (
     <motion.div
-      whileHover={{ scale: 0.98 }}
-      whileTap={{ scale: 0.96 }}
+      whileHover={{ scale: 0.99 }}
+      whileTap={{ scale: 0.98 }}
       onClick={() => inputRef.current?.click()}
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
       className={cn(
-        "relative flex flex-col items-center justify-center p-6 border border-dashed rounded-xl cursor-pointer transition-colors duration-200",
-        isDragging ? "border-violet-500 bg-violet-500/10" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10",
-        modelFile && "border-green-500/50 bg-green-500/5"
+        "relative flex flex-col items-center justify-center p-6 border border-dashed rounded-xl cursor-pointer transition-colors duration-300",
+        isDragging ? "border-[var(--border-active)] bg-[var(--border-active)]/5" : "border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-active)]/40 hover:bg-[var(--bg-surface-hover)]",
+        modelFile && "border-[var(--color-success)]/50 bg-[var(--color-success)]/10"
       )}
     >
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".fbx"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) setModelFile(file);
-        }}
-      />
+      <input ref={inputRef} type="file" accept=".fbx" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) setModelFile(file); }} />
       
       <AnimatePresence mode="wait">
         {modelFile ? (
           <motion.div key="loaded" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center">
-            <CheckCircle2 className="w-6 h-6 text-green-400 mb-2" />
-            <p className="text-xs text-gray-300 font-medium truncate max-w-[200px]">{modelFile.name}</p>
+            <CheckCircle2 className="w-6 h-6 text-[var(--color-success)] mb-2" />
+            <p className="text-xs text-[var(--text-primary)] font-medium truncate max-w-[200px]">{modelFile.name}</p>
           </motion.div>
         ) : (
           <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center">
-            <UploadCloud className="w-6 h-6 text-gray-400 mb-2" />
-            <p className="text-xs text-gray-300 font-medium">Drop model .fbx</p>
-            <p className="text-[10px] text-gray-500 mt-1">or click to browse</p>
+            <UploadCloud className="w-6 h-6 text-[var(--text-secondary)] mb-2" />
+            <p className="text-xs text-[var(--text-primary)] font-medium">Drop model .fbx</p>
+            <p className="text-[10px] text-[var(--text-secondary)] mt-1">or click to browse</p>
           </motion.div>
         )}
       </AnimatePresence>
