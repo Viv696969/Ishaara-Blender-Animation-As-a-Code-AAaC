@@ -43,6 +43,19 @@ class IsharaProps(bpy.types.PropertyGroup):
     export_rig_only: bpy.props.BoolProperty(name="Rig Only (no mesh)", default=False)
 
 
+    # Apply Right Fist
+    fist_json_path: bpy.props.StringProperty(name="Fist JSON", subtype='FILE_PATH', description="Path to bone rotations JSON saved via Collect Bone Rotations")
+    fist_start_frame: bpy.props.IntProperty(name="Start Frame", default=1, min=0)
+    fist_end_frame: bpy.props.IntProperty(name="End Frame", default=60, min=1)
+    fist_exclude_thumb: bpy.props.BoolProperty(name="Exclude Thumb", default=False)
+    fist_exclude_index: bpy.props.BoolProperty(name="Exclude Index", default=False)
+    fist_exclude_middle: bpy.props.BoolProperty(name="Exclude Middle", default=False)
+    fist_exclude_ring: bpy.props.BoolProperty(name="Exclude Ring", default=False)
+    fist_exclude_pinky: bpy.props.BoolProperty(name="Exclude Pinky", default=False)
+
+    
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -631,6 +644,119 @@ class ISHAARA_PT_FingerTools(bpy.types.Panel):
         col.operator("ishaara.remove_constraints", icon='X')
 
 
+class ISHAARA_PT_ApplyRightFist(bpy.types.Panel):
+    bl_label = "Apply Right Fist"
+    bl_idname = "ISHAARA_PT_ApplyRightFist"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Ishaara"
+    bl_parent_id = "ISHAARA_PT_MainPanel"
+
+    def draw(self, context):
+        layout = self.layout
+        props = context.scene.ishaara_props
+
+        col = layout.column(align=True)
+        col.prop(props, "fist_json_path")
+        col.separator()
+
+        row = col.row(align=True)
+        row.prop(props, "fist_start_frame")
+        row.prop(props, "fist_end_frame")
+        col.separator()
+
+        col.label(text="Exclude fingers:")
+        row = col.row(align=True)
+        row.prop(props, "fist_exclude_thumb", toggle=True)
+        row.prop(props, "fist_exclude_index", toggle=True)
+        row = col.row(align=True)
+        row.prop(props, "fist_exclude_middle", toggle=True)
+        row.prop(props, "fist_exclude_ring", toggle=True)
+        col.prop(props, "fist_exclude_pinky", toggle=True)
+
+        col.separator()
+        col.label(text="Select armature + enter Pose Mode first", icon='INFO')
+        col.operator("ishaara.apply_right_fist", icon='HAND')
+# ─────────────────────────────────────────────────────────────────────────────
+# OPERATOR: Apply Right Fist
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OPERATOR: Apply Right Fist
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ISHAARA_OT_ApplyRightFist(bpy.types.Operator):
+    bl_idname = "ishaara.apply_right_fist"
+    bl_label = "Apply Right Fist"
+    bl_description = "Interpolate bone rotations from a JSON file (saved via Collect Bone Rotations) over the given frame range, excluding chosen fingers"
+
+    def execute(self, context):
+        props = context.scene.ishaara_props
+        obj = context.active_object
+
+        if not obj or obj.type != 'ARMATURE' or context.mode != 'POSE':
+            self.report({'ERROR'}, "Select an Armature and enter Pose Mode first.")
+            return {'CANCELLED'}
+
+        filepath = bpy.path.abspath(props.fist_json_path)
+        if not os.path.exists(filepath):
+            self.report({'ERROR'}, f"JSON file not found: {filepath}")
+            return {'CANCELLED'}
+
+        start = props.fist_start_frame
+        end = props.fist_end_frame
+        if end <= start:
+            self.report({'ERROR'}, "End Frame must be greater than Start Frame.")
+            return {'CANCELLED'}
+
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        excluded_keywords = []
+        if props.fist_exclude_thumb:
+            excluded_keywords.append("Thumb")
+        if props.fist_exclude_index:
+            excluded_keywords.append("Index")
+        if props.fist_exclude_middle:
+            excluded_keywords.append("Middle")
+        if props.fist_exclude_ring:
+            excluded_keywords.append("Ring")
+        if props.fist_exclude_pinky:
+            excluded_keywords.append("Pinky")
+
+        pose_bones = obj.pose.bones
+        total_steps = end - start
+        start_rotations = {}
+        target_rotations = {}
+
+        context.scene.frame_set(start)
+        context.view_layer.update()
+
+        for bone_name, rot_data in data["bones"].items():
+            if any(kw in bone_name for kw in excluded_keywords):
+                continue
+            if bone_name not in pose_bones:
+                continue
+
+            start_rotations[bone_name] = pose_bones[bone_name].rotation_quaternion.copy()
+            q = rot_data["quaternion"]
+            target_rotations[bone_name] = mathutils.Quaternion((q["w"], q["x"], q["y"], q["z"]))
+
+        total_keys = 0
+        for frame in range(start, end + 1):
+            context.scene.frame_set(frame)
+            factor = (frame - start) / total_steps
+            for bone_name, tq in target_rotations.items():
+                bone = pose_bones[bone_name]
+                sq = start_rotations[bone_name]
+                bone.rotation_quaternion = sq.slerp(tq, factor)
+                bone.keyframe_insert(data_path="rotation_quaternion", frame=frame)
+                total_keys += 1
+
+        context.scene.frame_set(start)
+        context.view_layer.update()
+        self.report({'INFO'}, f"Applied fist pose: {total_keys} keyframes inserted ({start}→{end})")
+        return {'FINISHED'}
 # ─────────────────────────────────────────────────────────────────────────────
 # REGISTER
 # ─────────────────────────────────────────────────────────────────────────────
@@ -650,6 +776,8 @@ CLASSES = [
     ISHAARA_PT_CollectBones,
     ISHAARA_PT_ExportFBX,
     ISHAARA_PT_FingerTools,
+    ISHAARA_OT_ApplyRightFist,
+    ISHAARA_PT_ApplyRightFist,
 ]
 
 
